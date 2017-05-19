@@ -22,7 +22,7 @@
 
 #include <SPI.h>
 #include <WiFi101.h>
-#include <jsmn.h>
+#include <ArduinoJson.h>
 
 char ssid[] = "Giraffe"; //  your network SSID (name)
 char pass[] = "r0bot1C5";    // your network password (use for WPA, or use as key for WEP)
@@ -67,8 +67,9 @@ void setup() {
 }
 
 void loop() {
-  getEmptyParkingSpotId();
-  while (true);
+  const int parkingSpotId = getEmptyParkingSpotId();
+  Serial.print("Found empty parking spot: ");
+  Serial.println(parkingSpotId);
 }
 
 
@@ -89,18 +90,36 @@ void printWiFiStatus() {
   Serial.println(" dBm");
 }
 
-void getEmptyParkingSpotId() {
+const int getEmptyParkingSpotId() {
   Serial.println("Fetching empty parking spot");
 
   int statusCode;
-  String response = httpRequest("GET", "/prod/parkingspot/empty", &statusCode);
+  String response = httpRequest("GET", "/prod/parkingspot/empty", statusCode);
+
+  if(statusCode == 200) {
+    StaticJsonBuffer<128> jsonBuffer;
+    JsonObject & root = jsonBuffer.parseObject(response);
+
+    if(root.success()) {
+      return root["body"]["id"];
+    } else {
+      Serial.println("Parsing JSON body failed");
+    }
+  } else if(statusCode == 404) {
+    Serial.println("There are no empty parking spots left.");
+  } else {
+    Serial.print("Unpexpected status code: ");
+    Serial.println(statusCode);
+  }
+
+  return -1;
 }
 
 void updateParkingSpotStatus() {
   // TODO
 }
 
-String httpRequest(char method[], char resource[], int * statusCode) {
+String httpRequest(char method[], char resource[], int & statusCode) {
   Serial.print("Server request: ");
   Serial.print(method);
   Serial.print(" ");
@@ -131,19 +150,24 @@ String httpRequest(char method[], char resource[], int * statusCode) {
 
     // parse response status code
     int statusCodeStartIndex = 9;
-    *statusCode = response.substring(statusCodeStartIndex, statusCodeStartIndex + 3).toInt();
+    statusCode = response.substring(statusCodeStartIndex, statusCodeStartIndex + 3).toInt();
+
+    // parse response body
+    int bodyStartIndex = response.lastIndexOf("\r\n");
+    String body = response.substring(bodyStartIndex);
 
     Serial.print("Response: ");
-    Serial.println(*statusCode);
+    Serial.print(statusCode);
+    Serial.print(" ");
+    Serial.println(body);
     
-    return response;
+    return body;
   } else {
     Serial.println("connection failed");
   }
 
   client.stop();
-  *statusCode = 0;
+  statusCode = 0;
   return "";
 }
-
 
