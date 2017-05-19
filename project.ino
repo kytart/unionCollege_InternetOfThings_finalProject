@@ -24,6 +24,9 @@
 #include <WiFi101.h>
 #include <ArduinoJson.h>
 
+#define EMPTY 0
+#define OCCUPIED 1
+
 char ssid[] = "Giraffe"; //  your network SSID (name)
 char pass[] = "r0bot1C5";    // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;            // your network key Index number (needed only for WEP)
@@ -67,9 +70,15 @@ void setup() {
 }
 
 void loop() {
-  const int parkingSpotId = getEmptyParkingSpotId();
-  Serial.print("Found empty parking spot: ");
-  Serial.println(parkingSpotId);
+  const bool success = updateParkingSpotStatus(5, OCCUPIED);
+
+  if(success) {
+    Serial.println("Success!");
+  } else {
+    Serial.println("Fail!");
+  }
+
+  while(true);
 }
 
 
@@ -94,7 +103,7 @@ const int getEmptyParkingSpotId() {
   Serial.println("Fetching empty parking spot");
 
   int statusCode;
-  String response = httpRequest("GET", "/prod/parkingspot/empty", statusCode);
+  String response = httpRequest("GET", "/prod/parkingspot/empty", "", statusCode);
 
   if(statusCode == 200) {
     StaticJsonBuffer<128> jsonBuffer;
@@ -109,21 +118,41 @@ const int getEmptyParkingSpotId() {
     Serial.println("There are no empty parking spots left.");
   } else {
     Serial.print("Unpexpected status code: ");
-    Serial.println(statusCode);
+      Serial.println(statusCode);
   }
 
   return -1;
 }
 
-void updateParkingSpotStatus() {
-  // TODO
+const bool updateParkingSpotStatus(const int id, const int newStatus) {
+  Serial.println("Updating parking spot status");
+
+  StaticJsonBuffer<128> jsonBuffer;
+  JsonObject & requestBodyJson = jsonBuffer.createObject();
+  requestBodyJson["id"] = id;
+  requestBodyJson["newStatus"] = newStatus;
+
+  char requestBody[128];
+  requestBodyJson.printTo(requestBody, sizeof(requestBody));
+
+  int statusCode;
+  String response = httpRequest("PUT", "/prod/parkingspot", String(requestBody), statusCode);
+
+  if(statusCode == 204) {
+    Serial.println("Parking spot status updated");
+    return true;
+  } else {
+    Serial.println("Updating parking spot status failed.");
+    return false;
+  }
 }
 
-String httpRequest(char method[], char resource[], int & statusCode) {
+String httpRequest(char method[], char resource[], const String body, int & statusCode) {
   Serial.print("Server request: ");
   Serial.print(method);
   Serial.print(" ");
   Serial.println(resource);
+  Serial.println(body);
   
   if(client.connectSSL(HOST, 443)) {
     client.print(method);
@@ -134,8 +163,12 @@ String httpRequest(char method[], char resource[], int & statusCode) {
     client.println(HOST);
     client.print("x-api-key: ");
     client.println(API_KEY);
+    client.println("Content-Type: application/json");
+    client.print("Content-Length: ");
+    client.println(body.length());
     client.println("Connection: close");
     client.println();
+    client.println(body);
 
     String response = "";
 
