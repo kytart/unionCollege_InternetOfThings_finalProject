@@ -31,10 +31,16 @@
 #define HTTP_NO_CONTENT 204
 #define HTTP_NOT_FOUND 404
 
+#define HTTP_GET "GET"
+#define HTTP_PUT "PUT"
+
 #define PORT_SSL 443
 
 #define HOST "kf4ofjvtq0.execute-api.us-east-2.amazonaws.com"
 #define API_KEY "aD07hFg8zbhdXvx361pQazN5nLqcygTQso1HSA30"
+
+#define PARKING_SPOT_EMPTY_RESOURCE "/prod/parkingspot/empty"
+#define PARKING_SPOT_RESOURCE "/prod/parkingspot"
 
 
 char ssid[] = "Giraffe"; //  your network SSID (name)
@@ -102,7 +108,7 @@ const int getEmptyParkingSpotId() {
   Serial.println("Fetching empty parking spot");
 
   int statusCode;
-  String response = httpRequest("GET", "/prod/parkingspot/empty", "", statusCode);
+  String response = httpRequest(HTTP_GET, PARKING_SPOT_EMPTY_RESOURCE, "", statusCode);
 
   if(statusCode == HTTP_OK) {
     StaticJsonBuffer<128> jsonBuffer;
@@ -142,7 +148,7 @@ const bool updateParkingSpotStatus(const int id, const int newStatus) {
   requestBodyJson.printTo(requestBody, sizeof(requestBody));
 
   int statusCode;
-  String response = httpRequest("PUT", "/prod/parkingspot", String(requestBody), statusCode);
+  String response = httpRequest(HTTP_PUT, PARKING_SPOT_RESOURCE, String(requestBody), statusCode);
 
   if(statusCode == HTTP_OK) {
     JsonObject & responseJson = jsonBuffer.parseObject(response);
