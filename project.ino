@@ -27,14 +27,21 @@
 #define EMPTY 0
 #define OCCUPIED 1
 
+#define HTTP_OK 200
+#define HTTP_NO_CONTENT 204
+#define HTTP_NOT_FOUND 404
+
+#define PORT_SSL 443
+
+#define HOST "kf4ofjvtq0.execute-api.us-east-2.amazonaws.com"
+#define API_KEY "aD07hFg8zbhdXvx361pQazN5nLqcygTQso1HSA30"
+
+
 char ssid[] = "Giraffe"; //  your network SSID (name)
 char pass[] = "r0bot1C5";    // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;            // your network key Index number (needed only for WEP)
 
 int status = WL_IDLE_STATUS;
-
-char HOST[] = "kf4ofjvtq0.execute-api.us-east-2.amazonaws.com";
-char API_KEY[] = "aD07hFg8zbhdXvx361pQazN5nLqcygTQso1HSA30";
 
 WiFiClient client;
 
@@ -105,20 +112,27 @@ const int getEmptyParkingSpotId() {
   int statusCode;
   String response = httpRequest("GET", "/prod/parkingspot/empty", "", statusCode);
 
-  if(statusCode == 200) {
+  if(statusCode == HTTP_OK) {
     StaticJsonBuffer<128> jsonBuffer;
     JsonObject & root = jsonBuffer.parseObject(response);
 
     if(root.success()) {
-      return root["body"]["id"];
+      const int responseStatusCode = root["statusCode"];
+
+      if(responseStatusCode == HTTP_OK) {
+        return root["body"]["id"];
+      } else if(responseStatusCode == HTTP_NOT_FOUND) {
+        Serial.println("There are no empty parking spots left.");
+      } else {
+        Serial.print("Unpexpected status code: ");
+        Serial.println(statusCode);
+      }
     } else {
       Serial.println("Parsing JSON body failed");
     }
-  } else if(statusCode == 404) {
-    Serial.println("There are no empty parking spots left.");
   } else {
     Serial.print("Unpexpected status code: ");
-      Serial.println(statusCode);
+    Serial.println(statusCode);
   }
 
   return -1;
@@ -138,13 +152,27 @@ const bool updateParkingSpotStatus(const int id, const int newStatus) {
   int statusCode;
   String response = httpRequest("PUT", "/prod/parkingspot", String(requestBody), statusCode);
 
-  if(statusCode == 204) {
-    Serial.println("Parking spot status updated");
-    return true;
+  if(statusCode == HTTP_OK) {
+    JsonObject & responseJson = jsonBuffer.parseObject(response);
+
+    if(responseJson.success()) {
+      const int responseStatusCode = responseJson["statusCode"];
+      
+      if(responseStatusCode == HTTP_NO_CONTENT) {
+        Serial.println("Parking spot status updated");
+        return true;
+      } else {
+        Serial.print("Unexpected response status code: ");
+        Serial.println(responseStatusCode);
+      }
+    } else {
+      Serial.println("Unable to parse response body");
+    }
   } else {
     Serial.println("Updating parking spot status failed.");
-    return false;
   }
+
+  return false;
 }
 
 String httpRequest(char method[], char resource[], const String body, int & statusCode) {
@@ -154,7 +182,7 @@ String httpRequest(char method[], char resource[], const String body, int & stat
   Serial.println(resource);
   Serial.println(body);
   
-  if(client.connectSSL(HOST, 443)) {
+  if(client.connectSSL(HOST, PORT_SSL)) {
     client.print(method);
     client.print(" ");
     client.print(resource);
