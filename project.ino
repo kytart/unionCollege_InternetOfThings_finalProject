@@ -77,15 +77,7 @@ void setup() {
 }
 
 void loop() {
-  const bool success = updateParkingSpotStatus(5, OCCUPIED);
-
-  if(success) {
-    Serial.println("Success!");
-  } else {
-    Serial.println("Fail!");
-  }
-
-  while(true);
+  // TODO : implement this
 }
 
 
