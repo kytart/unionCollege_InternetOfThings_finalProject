@@ -1,7 +1,7 @@
 #define PARKING_SPOT_EMPTY 0
 #define PARKING_SPOT_OCCUPIED 1
 
-#define PARKING_SPOTS_COUNT 3
+#define PARKING_SPOTS_COUNT 2
 
 
 typedef struct ParkingSpot {

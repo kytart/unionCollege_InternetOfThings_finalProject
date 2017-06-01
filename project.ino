@@ -9,11 +9,11 @@
 #define PIN_ENTRANCE_BREAKBEAM 9
 #define PIN_GATE_SERVO 10
 
-const int parkingSpotPins[] = { A3, A4, A5 };
-const int ledPathPins[] = { 10, 11, 12 };
+const int parkingSpotPins[] = { A4, A5 };
+const int ledPathPins[] = { 11, 12 };
 
 bool carDetected = false;
-int assignedParkingSpotId;
+int assignedParkingSpotId = -1;
 
 unsigned long lastTimeTriedAssignParkingSpot;
 unsigned long parkingSpotAssignedAt;
@@ -142,7 +142,10 @@ void checkIfShouldResetParkingSpotAssigned() {
 
 
 void resetParkingSpotAssigned() {
-  changeLedPathToTheParkingSpot(parkingSpots[assignedParkingSpotId - 1], false);
+  if(assignedParkingSpotId > 0) {
+    changeLedPathToTheParkingSpot(parkingSpots[assignedParkingSpotId - 1], false);
+  }
+  
   closeGate(PIN_GATE_SERVO);
   
   assignedParkingSpotId = -1;

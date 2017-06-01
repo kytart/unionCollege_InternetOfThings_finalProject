@@ -3,10 +3,10 @@
 #include "http.h"
 #include <ArduinoJson.h>
 
-#define PHOTORESISTOR_THRESHOLD 400
+#define PHOTORESISTOR_THRESHOLD 100
 
 
-ParkingSpot::ParkingSpot() : occupied(true) {}
+ParkingSpot::ParkingSpot() : occupied(PARKING_SPOT_EMPTY) {}
 
 
 ParkingSpot * initializeParkingSpots(const int statusPins[], const int ledPathPins[]) {
