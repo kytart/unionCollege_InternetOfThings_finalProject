@@ -2,6 +2,7 @@
 #include "entrance.h"
 
 #define ASSIGN_PARKING_SPOT_RETRY_INTERVAL 2000
+#define PARKING_SPOT_ASSIGNED_TIMEOUT 10000
 
 #define PIN_ENTRANCE_BREAKBEAM 9
 #define PIN_GATE_SERVO 10
@@ -10,14 +11,17 @@ const int parkingSpotPins[] = { A3, A4, A5 };
 const int ledPathPins[] = { 10, 11, 12 };
 
 bool carDetected = false;
-int assignedParkingSpotId = -1;
-unsigned long lastTimeTriedAssignParkingSpot = 0;
+int assignedParkingSpotId;
+
+unsigned long lastTimeTriedAssignParkingSpot;
+unsigned long parkingSpotAssignedAt;
 
 ParkingSpot * parkingSpots;
 
 
 void setup() {
   parkingSpots = initializeParkingSpots(parkingSpotPins, ledPathPins);
+  resetParkingSpotAssigned();
   
   //Initialize serial and wait for port to open:
   Serial.begin(9600);
@@ -26,11 +30,14 @@ void setup() {
   }
 }
 
+
 void loop() {
   updateParkingSpotsStatus();
   updateCarDetected();
+  checkIfShouldResetParkingSpotAssigned();
   delay(100);
 }
+
 
 void updateParkingSpotsStatus() {
   bool updateSuccessful;
@@ -53,6 +60,7 @@ void updateParkingSpotsStatus() {
   }
 }
 
+
 void updateCarDetected() {
   bool detectionStatus = readCarDetectionStatus(PIN_ENTRANCE_BREAKBEAM);
   int assignedParkingSpot;
@@ -73,6 +81,7 @@ void updateCarDetected() {
 
           if(assignedParkingSpot > 0) {
             assignedParkingSpotId = assignedParkingSpot;
+            parkingSpotAssignedAt = millis();
             // open gate
             openGate(PIN_GATE_SERVO);
             // light up path to the assigned parking spot
@@ -85,5 +94,24 @@ void updateCarDetected() {
          }
     }
   }
+}
+
+
+void checkIfShouldResetParkingSpotAssigned() {
+  unsigned long currentTime = millis();
+  
+  if(assignedParkingSpotId > 0 && currentTime - parkingSpotAssignedAt > PARKING_SPOT_ASSIGNED_TIMEOUT) {
+    resetParkingSpotAssigned();
+  }
+}
+
+
+void resetParkingSpotAssigned() {
+  changeLedPathToTheParkingSpot(parkingSpots[assignedParkingSpotId - 1], false);
+  closeGate(PIN_GATE_SERVO);
+  
+  assignedParkingSpotId = -1;
+  lastTimeTriedAssignParkingSpot = 0;
+  parkingSpotAssignedAt = 0;
 }
 
