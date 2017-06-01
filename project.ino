@@ -7,6 +7,7 @@
 #define PIN_GATE_SERVO 10
 
 const int parkingSpotPins[] = { A3, A4, A5 };
+const int ledPathPins[] = { 10, 11, 12 };
 
 bool carDetected = false;
 int assignedParkingSpotId = -1;
@@ -16,7 +17,7 @@ ParkingSpot * parkingSpots;
 
 
 void setup() {
-  parkingSpots = initializeParkingSpots(parkingSpotPins);
+  parkingSpots = initializeParkingSpots(parkingSpotPins, ledPathPins);
   
   //Initialize serial and wait for port to open:
   Serial.begin(9600);
@@ -71,9 +72,11 @@ void updateCarDetected() {
           assignedParkingSpot = getEmptyParkingSpotIdFromServer();
 
           if(assignedParkingSpot > 0) {
-            // TODO : light up path
             assignedParkingSpotId = assignedParkingSpot;
+            // open gate
             openGate(PIN_GATE_SERVO);
+            // light up path to the assigned parking spot
+            changeLedPathToTheParkingSpot(parkingSpots[assignedParkingSpotId - 1], true);
           } else {
             Serial.println("Failed assigning a parking spot");
           }

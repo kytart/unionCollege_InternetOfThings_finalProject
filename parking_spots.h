@@ -7,7 +7,8 @@
 typedef struct ParkingSpot {
   int id;
   bool occupied;
-  int pin;
+  int statusPin;
+  int ledPathPin;
   ParkingSpot();
 } ParkingSpot;
 
@@ -19,7 +20,7 @@ typedef struct ParkingSpot {
  * Also, a pin is assigned to each parking lot from an array of pins, provided as a function argument.
  * Those pins should be analog input pins and a photoresistor should be connected to each pin.
  */
-ParkingSpot * initializeParkingSpots(const int pins[]);
+ParkingSpot * initializeParkingSpots(const int statusPins[], const int ledPathPins[]);
 
 
 /**
@@ -39,4 +40,10 @@ bool updateParkingSpotStatusOnServer(const ParkingSpot parkingSpot, const int ne
  * If no parking spot is available, return -1.
  */
 const int getEmptyParkingSpotIdFromServer();
+
+
+/**
+ * Switch led path to the specified parking spot on or off, based on newState.
+ */
+void changeLedPathToTheParkingSpot(const ParkingSpot parkingSpot, bool newState);
 

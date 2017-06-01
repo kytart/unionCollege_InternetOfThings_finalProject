@@ -9,12 +9,13 @@
 ParkingSpot::ParkingSpot() : occupied(true) {}
 
 
-ParkingSpot * initializeParkingSpots(const int pins[]) {
+ParkingSpot * initializeParkingSpots(const int statusPins[], const int ledPathPins[]) {
   ParkingSpot * parkingSpots = new ParkingSpot[PARKING_SPOTS_COUNT];
 
   for(int i = 0; i < PARKING_SPOTS_COUNT; i++) {
     parkingSpots[i].id = i + 1;
-    parkingSpots[i].pin = pins[i];
+    parkingSpots[i].statusPin = statusPins[i];
+    parkingSpots[i].ledPathPin = ledPathPins[i];
   }
 
   return parkingSpots;
@@ -22,7 +23,7 @@ ParkingSpot * initializeParkingSpots(const int pins[]) {
 
 
 bool readParkingSpotStatus(ParkingSpot parkingSpot) {
-  const int analogValue = analogRead(parkingSpot.pin);
+  const int analogValue = analogRead(parkingSpot.statusPin);
 
   if(analogValue > PHOTORESISTOR_THRESHOLD) {
     return PARKING_SPOT_EMPTY;
@@ -100,5 +101,10 @@ const int getEmptyParkingSpotIdFromServer() {
   }
 
   return -1;
+}
+
+
+void changeLedPathToTheParkingSpot(const ParkingSpot parkingSpot, bool newState) {
+  digitalWrite(parkingSpot.ledPathPin, newState ? HIGH : LOW);
 }
 
