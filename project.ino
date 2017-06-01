@@ -1,8 +1,11 @@
 #include "parking_spots.h"
 
 
+ParkingSpot * parkingSpots;
+
+
 void setup() {
-  
+  parkingSpots = initializeParkingSpots();
   
   //Initialize serial and wait for port to open:
   Serial.begin(9600);

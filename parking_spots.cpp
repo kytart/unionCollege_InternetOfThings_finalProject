@@ -1,6 +1,21 @@
+#include "Arduino.h"
 #include "parking_spots.h"
 #include "http.h"
 #include <ArduinoJson.h>
+
+
+ParkingSpot::ParkingSpot() : empty(true) {}
+
+
+ParkingSpot * initializeParkingSpots() {
+  ParkingSpot * parkingSpots = new ParkingSpot[PARKING_SPOTS_COUNT];
+
+  for(int i = 0; i < PARKING_SPOTS_COUNT; i++) {
+    parkingSpots[i].id = i + 1;
+  }
+
+  return parkingSpots;
+}
 
 
 const bool updateParkingSpotStatus(const int id, const int newStatus) {
