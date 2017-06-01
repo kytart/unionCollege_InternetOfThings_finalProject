@@ -1,3 +1,4 @@
+#include "http.h"
 #include "parking_spots.h"
 #include "entrance.h"
 
@@ -33,19 +34,25 @@ void setup() {
   for(int i = 0; i < PARKING_SPOTS_COUNT; i++) {
     pinMode(ledPathPins[i], OUTPUT);
   }
-  
-  
-  
-  parkingSpots = initializeParkingSpots(parkingSpotPins, ledPathPins);
-  resetParkingSpotAssigned();
-  
-  //Initialize serial and wait for port to open:
+
+  // initialize serial and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
+  // setup WiFi
+  setupWifi();
+  
+  // initialize parking spots
+  Serial.println("initializing parking spots internal state");
+  parkingSpots = initializeParkingSpots(parkingSpotPins, ledPathPins);
+  resetParkingSpotAssigned();
+
+  
+
   // when everything is setup, light up status LED
+  Serial.println("ready...");
   digitalWrite(PIN_STATUS, HIGH);
 }
 
