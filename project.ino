@@ -49,8 +49,6 @@ void setup() {
   parkingSpots = initializeParkingSpots(parkingSpotPins, ledPathPins);
   resetParkingSpotAssigned();
 
-  
-
   // when everything is setup, light up status LED
   Serial.println("ready...");
   digitalWrite(PIN_STATUS, HIGH);
@@ -73,10 +71,15 @@ void updateParkingSpotsStatus() {
     occupied = readParkingSpotStatus(parkingSpots[i]);
 
     if(parkingSpots[i].occupied != occupied) {
+        Serial.print("Parking spot (id ");
+        Serial.print(parkingSpots[i].id);
+        Serial.println(") state changed, updating...");
+      
       updateSuccessful = updateParkingSpotStatusOnServer(parkingSpots[i], occupied);
 
       if(updateSuccessful) {
         parkingSpots[i].occupied = occupied;
+        Serial.println("Updated!");
       } else {
         Serial.print("Updating parking spot (id ");
         Serial.print(parkingSpots[i].id);
@@ -95,6 +98,7 @@ void updateCarDetected() {
   if(carDetected != detectionStatus) {
     if(carDetected) {
       carDetected = false;
+      Serial.println("Car left");
     } else {
       Serial.println("Incoming car detected");
       carDetected = true;
@@ -103,9 +107,13 @@ void updateCarDetected() {
       if(lastTimeTriedAssignParkingSpot == 0 || 
          currentTime - lastTimeTriedAssignParkingSpot >= ASSIGN_PARKING_SPOT_RETRY_INTERVAL
         ) {
+          Serial.println("Trying to assign a parking spot to the new car");
           assignedParkingSpot = getEmptyParkingSpotIdFromServer();
 
           if(assignedParkingSpot > 0) {
+            Serial.print("Empty parking spot found: ");
+            Serial.println(assignedParkingSpot);
+            
             assignedParkingSpotId = assignedParkingSpot;
             parkingSpotAssignedAt = millis();
             // open gate
@@ -127,6 +135,7 @@ void checkIfShouldResetParkingSpotAssigned() {
   unsigned long currentTime = millis();
   
   if(assignedParkingSpotId > 0 && currentTime - parkingSpotAssignedAt > PARKING_SPOT_ASSIGNED_TIMEOUT) {
+    Serial.println("Timeout... reseting state, closing gate, etc.");
     resetParkingSpotAssigned();
   }
 }
