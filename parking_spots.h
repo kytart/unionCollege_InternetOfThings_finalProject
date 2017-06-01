@@ -31,12 +31,12 @@ bool readParkingSpotStatus(ParkingSpot parkingSpot);
 /**
  * Connect's to AWS API and updates status of a parking spot.
  */
-bool updateParkingSpotStatus(const ParkingSpot parkingSpot, const int newStatus);
+bool updateParkingSpotStatusOnServer(const ParkingSpot parkingSpot, const int newStatus);
 
 
 /**
  * Connect's to AWS API and returns ID of an empty parking spot.
  * If no parking spot is available, return -1.
  */
-const int getEmptyParkingSpotId();
+const int getEmptyParkingSpotIdFromServer();
 

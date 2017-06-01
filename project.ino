@@ -28,7 +28,7 @@ void updateParkingSpotsStatus() {
     occupied = readParkingSpotStatus(parkingSpots[i]);
 
     if(parkingSpots[i].occupied != occupied) {
-      updateSuccessful = updateParkingSpotStatus(parkingSpots[i], occupied);
+      updateSuccessful = updateParkingSpotStatusOnServer(parkingSpots[i], occupied);
 
       if(updateSuccessful) {
         parkingSpots[i].occupied = occupied;

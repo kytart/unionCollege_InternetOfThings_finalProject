@@ -32,7 +32,7 @@ bool readParkingSpotStatus(ParkingSpot parkingSpot) {
 }
 
 
-bool updateParkingSpotStatus(const ParkingSpot parkingSpot, const int newStatus) {
+bool updateParkingSpotStatusOnServer(const ParkingSpot parkingSpot, const int newStatus) {
   Serial.println("Updating parking spot status");
 
   StaticJsonBuffer<128> jsonBuffer;
@@ -70,7 +70,7 @@ bool updateParkingSpotStatus(const ParkingSpot parkingSpot, const int newStatus)
 }
 
 
-const int getEmptyParkingSpotId() {
+const int getEmptyParkingSpotIdFromServer() {
   Serial.println("Fetching empty parking spot");
 
   int statusCode;
