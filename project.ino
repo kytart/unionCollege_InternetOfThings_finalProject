@@ -4,6 +4,7 @@
 #define ASSIGN_PARKING_SPOT_RETRY_INTERVAL 2000
 #define PARKING_SPOT_ASSIGNED_TIMEOUT 10000
 
+#define PIN_STATUS 13
 #define PIN_ENTRANCE_BREAKBEAM 9
 #define PIN_GATE_SERVO 10
 
@@ -20,6 +21,21 @@ ParkingSpot * parkingSpots;
 
 
 void setup() {
+  // setup status LED pin
+  pinMode(PIN_STATUS, OUTPUT);
+  digitalWrite(PIN_STATUS, LOW);
+  
+  // setup break-beam pin
+  pinMode(PIN_ENTRANCE_BREAKBEAM, INPUT);
+  digitalWrite(PIN_ENTRANCE_BREAKBEAM, HIGH);
+
+  // setup LED pins
+  for(int i = 0; i < PARKING_SPOTS_COUNT; i++) {
+    pinMode(ledPathPins[i], OUTPUT);
+  }
+  
+  
+  
   parkingSpots = initializeParkingSpots(parkingSpotPins, ledPathPins);
   resetParkingSpotAssigned();
   
@@ -28,6 +44,9 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+
+  // when everything is setup, light up status LED
+  digitalWrite(PIN_STATUS, HIGH);
 }
 
 
