@@ -5,3 +5,15 @@
  */
 bool readCarDetectionStatus(const int pin);
 
+
+/**
+ * Open the gate, operated by servo.
+ */
+void openGate(const int pin);
+
+
+/**
+ * Close the gate, operated by servo.
+ */
+void closeGate(const int pin);
+

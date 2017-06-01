@@ -4,6 +4,7 @@
 #define ASSIGN_PARKING_SPOT_RETRY_INTERVAL 2000
 
 #define PIN_ENTRANCE_BREAKBEAM 9
+#define PIN_GATE_SERVO 10
 
 const int parkingSpotPins[] = { A3, A4, A5 };
 
@@ -70,8 +71,9 @@ void updateCarDetected() {
           assignedParkingSpot = getEmptyParkingSpotIdFromServer();
 
           if(assignedParkingSpot > 0) {
-            // TODO : light up path and open gate
+            // TODO : light up path
             assignedParkingSpotId = assignedParkingSpot;
+            openGate(PIN_GATE_SERVO);
           } else {
             Serial.println("Failed assigning a parking spot");
           }
