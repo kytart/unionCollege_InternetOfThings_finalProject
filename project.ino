@@ -1,6 +1,15 @@
 #include "parking_spots.h"
+#include "entrance.h"
+
+#define ASSIGN_PARKING_SPOT_RETRY_INTERVAL 2000
+
+#define PIN_ENTRANCE_BREAKBEAM 9
 
 const int parkingSpotPins[] = { A3, A4, A5 };
+
+bool carDetected = false;
+int assignedParkingSpotId = -1;
+unsigned long lastTimeTriedAssignParkingSpot = 0;
 
 ParkingSpot * parkingSpots;
 
@@ -17,6 +26,7 @@ void setup() {
 
 void loop() {
   updateParkingSpotsStatus();
+  updateCarDetected();
   delay(100);
 }
 
@@ -37,6 +47,37 @@ void updateParkingSpotsStatus() {
         Serial.print(parkingSpots[i].id);
         Serial.println(") failed.");
       }
+    }
+  }
+}
+
+void updateCarDetected() {
+  bool detectionStatus = readCarDetectionStatus(PIN_ENTRANCE_BREAKBEAM);
+  int assignedParkingSpot;
+  unsigned long currentTime = millis();
+
+  if(carDetected != detectionStatus) {
+    if(carDetected) {
+      carDetected = false;
+    } else {
+      Serial.println("Incoming car detected");
+      carDetected = true;
+      
+      // only try assign an empty parking spot, if haven't tried recently
+      if(lastTimeTriedAssignParkingSpot == 0 || 
+         currentTime - lastTimeTriedAssignParkingSpot >= ASSIGN_PARKING_SPOT_RETRY_INTERVAL
+        ) {
+          assignedParkingSpot = getEmptyParkingSpotIdFromServer();
+
+          if(assignedParkingSpot > 0) {
+            // TODO : light up path and open gate
+            assignedParkingSpotId = assignedParkingSpot;
+          } else {
+            Serial.println("Failed assigning a parking spot");
+          }
+
+          lastTimeTriedAssignParkingSpot = 0;
+         }
     }
   }
 }
