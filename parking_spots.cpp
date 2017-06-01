@@ -3,27 +3,41 @@
 #include "http.h"
 #include <ArduinoJson.h>
 
+#define PHOTORESISTOR_THRESHOLD 400
 
-ParkingSpot::ParkingSpot() : empty(true) {}
+
+ParkingSpot::ParkingSpot() : occupied(true) {}
 
 
-ParkingSpot * initializeParkingSpots() {
+ParkingSpot * initializeParkingSpots(const int pins[]) {
   ParkingSpot * parkingSpots = new ParkingSpot[PARKING_SPOTS_COUNT];
 
   for(int i = 0; i < PARKING_SPOTS_COUNT; i++) {
     parkingSpots[i].id = i + 1;
+    parkingSpots[i].pin = pins[i];
   }
 
   return parkingSpots;
 }
 
 
-const bool updateParkingSpotStatus(const int id, const int newStatus) {
+bool readParkingSpotStatus(ParkingSpot parkingSpot) {
+  const int analogValue = analogRead(parkingSpot.pin);
+
+  if(analogValue > PHOTORESISTOR_THRESHOLD) {
+    return PARKING_SPOT_EMPTY;
+  }
+
+  return PARKING_SPOT_OCCUPIED;
+}
+
+
+bool updateParkingSpotStatus(const ParkingSpot parkingSpot, const int newStatus) {
   Serial.println("Updating parking spot status");
 
   StaticJsonBuffer<128> jsonBuffer;
   JsonObject & requestBodyJson = jsonBuffer.createObject();
-  requestBodyJson["id"] = id;
+  requestBodyJson["id"] = parkingSpot.id;
   requestBodyJson["newStatus"] = newStatus;
 
   char requestBody[128];
