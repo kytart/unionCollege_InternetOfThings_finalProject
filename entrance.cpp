@@ -2,8 +2,8 @@
 #include "entrance.h"
 #include <Servo.h>
 
-#define GATE_OPEN 90
-#define GATE_CLOSED 0
+#define GATE_OPEN 70
+#define GATE_CLOSED 160
 
 Servo servo;
 
